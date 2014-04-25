@@ -8,6 +8,34 @@
 
 using namespace std;
 
+struct Vertex {
+  bool visited;
+  int num;
+  int low;
+  int parent;
+};
+
+void FindArt( int v, const vector<vector<int> >& graph, vector<Vertex>& aux, int& counter ) {
+  aux.at(v-1).visited = true;
+  aux.at(v-1).low = aux.at(v-1).num = counter++; // Rule 1
+
+  auto& row = graph.at(v-1);
+  for_each( row.begin(), row.end(), [&](int w) {
+      if(! aux.at(w-1).visited ) { // forward edge
+	aux.at(w-1).parent = v;
+	FindArt( w, graph, aux, counter );
+	if( aux.at(w-1).low >= aux.at(v-1).num ) {
+	  cout << v << " is an articulation point." << endl;
+	}
+	aux.at(v-1).low = min( aux.at(v-1).low, aux.at(w-1).low ); // Rule 3
+      } else {
+	if( aux.at(v-1).parent != w  ) { // back edge
+	  aux.at(v-1).low = min( aux.at(v-1).low, aux.at(w-1).num ); // Rule 2
+	}
+      }
+    });
+}
+
 void solve( vector<vector<int> >& graph ) {
   graph.push_back( vector<int>(0) );
   vector<vector<int> > full_graph;
@@ -29,12 +57,14 @@ void solve( vector<vector<int> >& graph ) {
     full_graph.push_back( adj_list );
   }
 
-  for( auto it : full_graph ) {
-    for( auto itt : it ) {
-      cout << itt << " ";
-    }
-    cout << endl;
+  vector<Vertex> aux;
+  for( size_t i = 0; i < full_graph.size(); ++i ) {
+    Vertex v = { false, -1, -1, -1 };
+    aux.push_back( v );
   }
+
+  int counter = 1;
+  FindArt( 1, full_graph, aux, counter );
 }
 
 int main( int argc, char **argv ) {
