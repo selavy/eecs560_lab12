@@ -59,7 +59,6 @@ namespace TarjansAlgorithm {
 		    instances++;
 		  }
 		}
-
 		if( instances > 1 ) {
 		  ArtPoints.push_back( v );
 		}
@@ -111,7 +110,7 @@ namespace TarjansAlgorithm {
 
     vector<Vertex> aux;
     for( size_t i = 0; i < full_graph.size(); ++i ) {
-      Vertex v = { false, 0, 0, 0 };
+      Vertex v = { false, 0, 0, -1 };
       aux.push_back( v );
     }
 
