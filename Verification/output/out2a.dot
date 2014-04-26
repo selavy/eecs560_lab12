@@ -1,0 +1,14 @@
+graph A {
+  node[shape="circle"]
+C [ style="filled", fillcolor="red" ];
+B [ style="filled", fillcolor="red" ];
+A -- B[label="2"]
+A -- G[label="2"]
+B -- C[label="1"]
+B -- G[label="2"]
+C -- D[label="0"]
+C -- F[label="0"]
+D -- E[label="0"]
+D -- F[label="0"]
+E -- F[label="0"]
+}

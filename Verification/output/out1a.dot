@@ -1,0 +1,11 @@
+graph A {
+  node[shape="circle"]
+A -- F[label="0"]
+A -- G[label="0"]
+B -- C[label="1"]
+B -- E[label="1"]
+C -- D[label="1"]
+C -- E[label="1"]
+D -- E[label="1"]
+F -- G[label="0"]
+}

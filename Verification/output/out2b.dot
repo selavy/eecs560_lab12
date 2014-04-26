@@ -1,0 +1,23 @@
+graph A {
+  node[shape="circle"]
+B [ style="filled", fillcolor="red" ];
+D [ style="filled", fillcolor="red" ];
+F [ style="filled", fillcolor="red" ];
+H [ style="filled", fillcolor="red" ];
+J [ style="filled", fillcolor="red" ];
+A -- B[label="5"]
+A -- D[label="5"]
+A -- F[label="5"]
+A -- H[label="5"]
+A -- J[label="5"]
+B -- C[label="0"]
+B -- D[label="5"]
+B -- J[label="5"]
+D -- E[label="1"]
+D -- F[label="5"]
+F -- G[label="2"]
+F -- H[label="5"]
+H -- I[label="3"]
+H -- J[label="5"]
+J -- K[label="4"]
+}
