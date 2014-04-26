@@ -3,14 +3,10 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <queue>
 #include <algorithm>
 #include <climits>
 
 using namespace std;
-
-#define ROOT 1
-#define UNDEF -1
 
 namespace TarjansAlgorithm {
   /*
@@ -23,6 +19,7 @@ namespace TarjansAlgorithm {
     int num;
     int low;
     int parent;
+    Vertex( bool v, int n, int l, int p ) : visited(v), num(n), low(l), parent(p) {}
   };
 
   /*
@@ -40,38 +37,29 @@ namespace TarjansAlgorithm {
    * Algorithm based on one from Data Structures and Algorithm Analysis in C++ 3rd Ed. (Weiss) p.385
    */
   void FindArt( int v, const vector<vector<int> >& graph, vector<Vertex>& aux, vector<int>& ArtPoints, int& counter ) {
-    aux.at(v-1).visited = true;
+    aux.at(v-1).visited = true; // mark the vertex as visited
     aux.at(v-1).low = aux.at(v-1).num = counter++; // Rule 1
     auto& row = graph.at(v-1);
-    for_each( row.begin(), row.end(), [&](int w) {
-	if(! aux.at(w-1).visited ) { // forward edge
-	  aux.at(w-1).parent = v;
+    for_each( row.begin(), row.end(), [&](int w) { // for each adjacent vertex w...
+	if(! aux.at(w-1).visited ) {               // forward edge
+	  aux.at(w-1).parent = v;                  // set w's parent to be v
 	  FindArt( w, graph, aux, ArtPoints, counter );
 	  if( ArtPoints.end() == find( ArtPoints.begin(), ArtPoints.end(), v ) ) { // check if already found that it is an articulation point
-	    if( aux.at(w-1).low >= aux.at(v-1).num ) {
-	      if( aux.at(v-1).parent == -1 ) {
-		// count how many vertices have it as a parent
-		int instances = 0;
-		for( int i = 0; i < static_cast<int>( aux.size() ); ++i ) {
-		  if( i == v ) {
-		    continue;
-		  } else if( aux.at(i).parent == v ) {
-		    instances++;
-		  }
-		}
-		if( instances > 1 ) {
+	    if( aux.at(w-1).low >= aux.at(v-1).num ) { // Is an Articulation Point?
+	      if( aux.at(v-1).parent == -1 ) {         // if root (because it has no parent)
+		// count how many vertices have it as a parent, iff has more than
+		// 1 child, then it is an Articulation Point
+		if( 1 < count_if( aux.begin(), aux.end(), [&](Vertex vv) { return( vv.parent == v ); } ) ) {
 		  ArtPoints.push_back( v );
 		}
-	      } else {
+	      } else { // not root, so it is an Articulation Point
 		ArtPoints.push_back( v );
 	      }
 	    }
 	  }
 	  aux.at(v-1).low = min( aux.at(v-1).low, aux.at(w-1).low ); // Rule 3
-	} else {
-	  if( aux.at(v-1).parent != w  ) { // back edge
-	    aux.at(v-1).low = min( aux.at(v-1).low, aux.at(w-1).num ); // Rule 2
-	  }
+	} else if( aux.at(v-1).parent != w  ) { // back edge (not the one just travelled on)
+	  aux.at(v-1).low = min( aux.at(v-1).low, aux.at(w-1).num ); // Rule 2
 	}
       });
   }
@@ -90,33 +78,45 @@ namespace TarjansAlgorithm {
    */
   void solve( vector<vector<int> >& graph ) {
     static int graph_num = 1;
-    graph.push_back( vector<int>(0) );
+    graph.push_back( vector<int>(0) ); // just for convience, fill in the last vertex
+    const int graph_sz = static_cast<int>( graph.size() );
     vector<vector<int> > full_graph;
-    full_graph.reserve( graph.size() );
+    full_graph.reserve( graph_sz );
 
-    for( size_t v = 0; v < graph.size(); ++v ) {
+    //
+    // Since the graph is undirected, it is more efficient to one time,
+    // fill in the missing values, i.e. if a is adjacent to b, then add
+    // b adjacent to a
+    //
+    for( int v = 0; v < graph_sz; ++v ) {
       auto row = graph.at(v);
       vector<int> adj_list;
       for_each( row.begin(), row.end(), [&](int n) { if( n != 0 ) { adj_list.push_back(n); } } );
-      for( int i = 0; i < static_cast<int>(v); ++i ) {
-	row = graph.at(i);
-	if( any_of( row.begin(), row.end(), [&](int n) { return (n == static_cast<int>(v+1)); } ) ) {
-	  adj_list.push_back(i+1);
+      int count = 1;
+      for( auto& it : graph ) {
+	if( any_of( it.begin(), it.end(), [&](int n) { return (n == static_cast<int>(v+1)); } ) ) {
+	  adj_list.push_back(count);
 	}
+	count++;
       }
-      sort( adj_list.begin(), adj_list.end() );
       full_graph.push_back( adj_list );
     }
 
+    //
+    // Create the auxillary information vector that is needed for each vertex
+    //
     vector<Vertex> aux;
-    for( size_t i = 0; i < full_graph.size(); ++i ) {
-      Vertex v = { false, INT_MAX, INT_MAX, -1 };
-      aux.push_back( v );
+    for( int i = 0; i < graph_sz; ++i ) {
+      aux.emplace_back( false, INT_MAX, INT_MAX, -1 );
     }
 
     vector<int> ArtPoints;
-    int counter = 1;
-    for( int i = 1; i <= static_cast<int>( full_graph.size() ); ++i ) {
+    int counter = 1; // since passing by reference, have to have an actual variable
+    //
+    // if the graph is unconnected, then need to run several times with different
+    // roots
+    //
+    for( int i = 1; i <= graph_sz; ++i ) {
       if(! aux.at(i-1).visited ) {
 	FindArt( i, full_graph, aux, ArtPoints, counter );
       }
@@ -181,7 +181,7 @@ int main( int argc, char **argv ) {
 	}
       }
     }
-    if(! skip ) {
+    if(! skip ) { // make sure to not add empty vertex after breaking from while loop
       graph.push_back( vertex );
     } else {
       skip = false;
@@ -192,7 +192,7 @@ int main( int argc, char **argv ) {
   // Need to call again because previous call only
   // applies to multiple graphs in a file.
   //
-  graph.pop_back();
+  graph.pop_back(); // an extra vertex always gets pushed onto the back that shouldn't be there
   TarjansAlgorithm::solve( graph );
   
   return 0;
