@@ -110,13 +110,12 @@ namespace TarjansAlgorithm {
 
     vector<Vertex> aux;
     for( size_t i = 0; i < full_graph.size(); ++i ) {
-      Vertex v = { false, 0, 0, -1 };
+      Vertex v = { false, INT_MAX, INT_MAX, -1 };
       aux.push_back( v );
     }
 
     vector<int> ArtPoints;
     int counter = 1;
-
     for( int i = 1; i <= static_cast<int>( full_graph.size() ); ++i ) {
       if(! aux.at(i-1).visited ) {
 	FindArt( i, full_graph, aux, ArtPoints, counter );
@@ -161,8 +160,10 @@ int main( int argc, char **argv ) {
   //
   string line;
   vector< vector<int> > graph;
+  bool skip = false;
   while( ifs.good() ) {
     getline( ifs, line );
+
     string val;
     stringstream ss;
     vector<int> vertex;
@@ -172,6 +173,7 @@ int main( int argc, char **argv ) {
       if( v == -1 ) {
 	TarjansAlgorithm::solve( graph );
 	graph.clear(); // reset for the next graph in the file
+	skip = true;
 	break;
       } else {
 	if( v > 0 ) {
@@ -179,13 +181,18 @@ int main( int argc, char **argv ) {
 	}
       }
     }
-    graph.push_back( vertex );
+    if(! skip ) {
+      graph.push_back( vertex );
+    } else {
+      skip = false;
+    }
   }
   
   //
   // Need to call again because previous call only
   // applies to multiple graphs in a file.
   //
+  graph.pop_back();
   TarjansAlgorithm::solve( graph );
   
   return 0;
